@@ -1,0 +1,47 @@
+services:
+  database:
+    profiles: ["database"]
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_DB: nexusai
+      POSTGRES_USER: nexusai
+      POSTGRES_PASSWORD: ${NEXUSAI_POSTGRES_PASSWORD:-}
+    ports:
+      - "127.0.0.1:${NEXUSAI_POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - nexus_database:/var/lib/postgresql/data
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      NEXUSAI_ENVIRONMENT: ${NEXUSAI_ENVIRONMENT:-development}
+      NEXUSAI_DOCS_ENABLED: "false"
+      NEXUSAI_DATABASE_URL: ${NEXUSAI_DATABASE_URL:-}
+      NEXUSAI_OLLAMA_URL: ${NEXUSAI_OLLAMA_URL:-}
+      NEXUSAI_ANSWER_MODEL: ${NEXUSAI_ANSWER_MODEL:-}
+      NEXUSAI_EMBEDDING_MODEL: ${NEXUSAI_EMBEDDING_MODEL:-all-minilm}
+      NEXUSAI_RERANK_URL: ${NEXUSAI_RERANK_URL:-}
+    healthcheck:
+      test: ["CMD", "/app/.venv/bin/python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=2).close()"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+  frontend:
+    build: ./frontend
+    environment:
+      NEXUSAI_BACKEND_URL: http://backend:8000
+      NEXUSAI_ENABLE_READINESS_PROXY: "false"
+      NEXUSAI_PUBLIC_ORIGIN: ${NEXUSAI_PUBLIC_ORIGIN:-}
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${NEXUSAI_FRONTEND_PORT:-3000}:3000"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/system/health', {signal: AbortSignal.timeout(4500)}).then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+volumes:
+  nexus_database:

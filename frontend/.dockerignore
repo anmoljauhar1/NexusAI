@@ -1,0 +1,9 @@
+.env*
+.next
+.npm-cache
+tmpnpm-cache
+node_modules
+next-env.d.ts
+*.tsbuildinfo
+test-results
+playwright-report
