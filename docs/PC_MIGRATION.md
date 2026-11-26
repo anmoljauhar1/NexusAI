@@ -14,10 +14,10 @@ The command prints the path to a timestamped `.dump` under `%LOCALAPPDATA%\Nexus
 
 ## New PC
 
-Install Git, Docker Desktop, Node.js, and `uv`. Sign in to GitHub with access to the private repository and clone it:
+Install Git, Docker Desktop, Node.js, and `uv`. Clone the project:
 
 ```powershell
-git clone https://github.com/anmoljauhar1/NexusAI-Private.git NexusAI
+git clone https://github.com/anmoljauhar1/NexusAI.git
 cd NexusAI
 powershell -NoProfile -ExecutionPolicy Bypass -File .\setup.ps1 -WithAgents
 .\START_ALL.cmd
